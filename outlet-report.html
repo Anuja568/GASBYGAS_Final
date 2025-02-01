@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <header></header>
+  <body id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+      <!-- Sidebar -->
+      <div class="sidebar"></div>
+      <!-- End of Sidebar -->
+
+      <!-- Content Wrapper -->
+      <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="content">
+          <!-- Topbar -->
+          <nav
+            class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow"
+          ></nav>
+          <!-- End of Topbar -->
+
+          <!-- Begin Page Content -->
+          <div class="container-fluid">
+            <div class="col-xl-12 col-lg-12">
+              <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                  <div
+                    class="d-flex justify-content-between align-items-center"
+                  >
+                    <h6 class="m-0 font-weight-bold text-primary">
+                      Outlet Report
+                    </h6>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3 row">
+                    <div class="form-group col-lg-6">
+                      <!-- Export Button -->
+                      <button
+                        class="btn btn-primary mb-3"
+                        id="exportCSV"
+                        onclick="exportToCSV()"
+                      >
+                        Export as CSV
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Outlet Report Table -->
+                  <div class="table-responsive">
+                    <table class="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th>Outlet Name</th>
+                          <th>Contact Person</th>
+                          <th>Phone</th>
+                          <th>Email</th>
+                          <th>Capacity</th>
+                          <th>Status</th>
+                          <th>Total Consumers</th>
+                          <th>Total Gas Requests</th>
+                          <th>Total Deliveries</th>
+                        </tr>
+                      </thead>
+                      <tbody id="outletReportBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- /.container-fluid -->
+        </div>
+        <!-- End of Main Content -->
+
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white"></footer>
+        <!-- End of Footer -->
+      </div>
+      <!-- End of Content Wrapper -->
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+      <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="/vendor/jquery/jquery.min.js"></script>
+    <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="/js/sb-admin-2.min.js"></script>
+
+    <script>
+      // Your Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyDMkSeU2fHSeam7-9wg_ztiy7Iopr3Zrxc",
+        authDomain:"asegas-system.firebaseapp.com",
+        databaseURL:"https://asegas-system-default-rtdb.firebaseio.com",
+        projectId:"asegas-system" ,
+        storageBucket:"asegas-system.firebasestorage.app" ,
+        messagingSenderId: "326877611210",
+        appId:"1:326877611210:web:9d171e0601cceb9b4d2033",
+      };
+
+      // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      function fetchOutlets() {
+        const dbRef = firebase.database().ref("outlets");
+        dbRef.on("value", async (snapshot) => {
+          const tableBody = document.getElementById("outletReportBody");
+          tableBody.innerHTML = ""; // Clear existing rows
+
+          const consumersRef = db.ref("consumers");
+          const gasRequestsRef = db.ref("gasRequests");
+          const deliveriesRef = db.ref("deliveries");
+
+          // Fetch all data in parallel
+          const [consumersSnap, gasRequestsSnap, deliveriesSnap] =
+            await Promise.all([
+              consumersRef.once("value"),
+              gasRequestsRef.once("value"),
+              deliveriesRef.once("value"),
+            ]);
+
+          const consumersData = consumersSnap.val() || {};
+          const gasRequestsData = gasRequestsSnap.val() || {};
+          const deliveriesData = deliveriesSnap.val() || {};
+
+          snapshot.forEach((childSnapshot) => {
+            const outlet = childSnapshot.val();
+            const outletId = childSnapshot.key;
+
+            // Count related records
+            const totalConsumers = Object.values(consumersData).filter(
+              (consumer) => consumer.outletId === outletId
+            ).length;
+
+            const totalGasRequests = Object.values(gasRequestsData).filter(
+              (request) => request.outletId === outletId
+            ).length;
+
+            const totalDeliveries = Object.values(deliveriesData).filter(
+              (delivery) => delivery.outletId === outletId
+            ).length;
+
+            const row = `
+        <tr>
+          <td>${outlet.outletName || "N/A"}</td>
+          <td>${outlet.contactPerson || "N/A"}</td>
+          <td>${outlet.contactNumber || "N/A"}</td>
+          <td>${outlet.email || "N/A"}</td>
+          <td>${outlet.capacity || "N/A"}</td>
+          <td>${outlet.status || "N/A"}</td>
+          <td>${totalConsumers}</td>
+          <td>${totalGasRequests}</td>
+          <td>${totalDeliveries}</td>
+        </tr>
+      `;
+            tableBody.innerHTML += row;
+          });
+        });
+      }
+
+      // Export to CSV
+      function exportToCSV() {
+        let csv =
+          "Outlet Name,Contact Person,Phone,Email,Capacity,Status,Total Consumers,Total Gas Requests,Total Deliveries\n";
+        document.querySelectorAll("#outletReportBody tr").forEach((row) => {
+          let rowData = [];
+          row
+            .querySelectorAll("td")
+            .forEach((cell) => rowData.push(cell.innerText));
+          csv += rowData.join(",") + "\n";
+        });
+
+        // Create download link
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "Outlet_Report.csv";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+
+      // Initialize fetching when the page loads
+      document.addEventListener("DOMContentLoaded", fetchOutlets);
+    </script>
+
+    <script>
+      // Function to load an HTML file into a specific element
+      function loadComponent(selector, file) {
+        fetch(file)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Could not load ${file}`);
+            }
+            return response.text();
+          })
+          .then((data) => {
+            document.querySelector(selector).innerHTML = data;
+          })
+          .catch((error) => console.error(error));
+      }
+
+      // Load components
+      document.addEventListener("DOMContentLoaded", () => {
+        loadComponent("header", "/includes/header.html");
+        loadComponent("nav", "/includes/top.html");
+        loadComponent(".sidebar", "/includes/sidebar.html");
+        loadComponent("footer", "/includes/footer.html");
+      });
+    </script>
+  </body>
+</html>

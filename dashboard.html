@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+  <header>
+   
+  </header>
+  <body id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+      <!-- Sidebar -->
+      <div class="sidebar"></div>
+      <!-- End of Sidebar -->
+
+      <!-- Content Wrapper -->
+      <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="content">
+          <!-- Topbar -->
+          <nav
+            class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow"
+          ></nav>
+          <!-- End of Topbar -->
+
+          <!-- Begin Page Content -->
+          <div class="container-fluid">
+            <!-- Page Heading -->
+            <h1 class="h3 mb-4 text-gray-800">Dashboard</h1>
+
+            <!-- Dashboard Summary Cards -->
+            <div class="row">
+              <!-- Total Outlets -->
+              <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div
+                          class="text-xs font-weight-bold text-primary text-uppercase mb-1"
+                        >
+                          Total Outlets
+                        </div>
+                        <div
+                          class="h5 mb-0 font-weight-bold text-gray-800"
+                          id="totalOutlets"
+                        >
+                          0
+                        </div>
+                      </div>
+                      <div class="col-auto">
+                        <i class="fas fa-store fa-2x text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Total Consumers -->
+              <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div
+                          class="text-xs font-weight-bold text-success text-uppercase mb-1"
+                        >
+                          Total Consumers
+                        </div>
+                        <div
+                          class="h5 mb-0 font-weight-bold text-gray-800"
+                          id="totalConsumers"
+                        >
+                          0
+                        </div>
+                      </div>
+                      <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pending Tokens -->
+              <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div
+                          class="text-xs font-weight-bold text-warning text-uppercase mb-1"
+                        >
+                          Pending Requests
+                        </div>
+                        <div
+                          class="h5 mb-0 font-weight-bold text-gray-800"
+                          id="pendingRequests"
+                        >
+                          0
+                        </div>
+                      </div>
+                      <div class="col-auto">
+                        <i class="fas fa-ticket-alt fa-2x text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div
+                          class="text-xs font-weight-bold text-warning text-uppercase mb-1"
+                        >
+                          Scheduled Requests
+                        </div>
+                        <div
+                          class="h5 mb-0 font-weight-bold text-gray-800"
+                          id="scheduledRequests"
+                        >
+                          0
+                        </div>
+                      </div>
+                      <div class="col-auto">
+                        <i class="fas fa-ticket-alt fa-2x text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Example Chart Section -->
+            <div class="row">
+              <div class="col-xl-12 col-lg-12">
+                <div class="card shadow mb-4">
+                  <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                      Outlets vs Consumers
+                    </h6>
+                  </div>
+                  <div class="card-body">
+                    <canvas
+                      id="outletConsumersChart"
+                      width="500"
+                      height="100"
+                    ></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- /.container-fluid -->
+        </div>
+        <!-- End of Main Content -->
+
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white"></footer>
+        <!-- End of Footer -->
+      </div>
+      <!-- End of Content Wrapper -->
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+      <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    <div
+      class="modal fade"
+      id="logoutModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+            <button
+              class="close"
+              type="button"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            Select "Logout" below if you are ready to end your current session.
+          </div>
+          <div class="modal-footer">
+            <button
+              class="btn btn-secondary"
+              type="button"
+              data-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <a class="btn btn-primary" href="login.html">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <!-- Load Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Bootstrap core JavaScript-->
+    <script src="/vendor/jquery/jquery.min.js"></script>
+    <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+     <script src="./vendor/jquery-easing/jquery.easing.min.js"></script>
+   
+
+    <!-- Custom scripts for all pages-->
+     <script src="./js/sb-admin-2.min.js"></script>
+  
+
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyDMkSeU2fHSeam7-9wg_ztiy7Iopr3Zrxc",
+        authDomain:"asegas-system.firebaseapp.com",
+        databaseURL:"https://asegas-system-default-rtdb.firebaseio.com",
+        projectId:"asegas-system" ,
+        storageBucket:"asegas-system.firebasestorage.app" ,
+        messagingSenderId: "326877611210",
+        appId:"1:326877611210:web:9d171e0601cceb9b4d2033",
+      };
+
+      // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      // Get total outlets
+      db.ref("outlets")
+        .once("value")
+        .then((snapshot) => {
+          document.getElementById("totalOutlets").textContent =
+            snapshot.numChildren();
+        })
+        .catch((error) => console.error("Error fetching outlets:", error));
+
+      // Get total consumers
+      db.ref("consumers")
+        .once("value")
+        .then((snapshot) => {
+          document.getElementById("totalConsumers").textContent =
+            snapshot.numChildren();
+        })
+        .catch((error) => console.error("Error fetching consumers:", error));
+
+      // Get pending requests
+      db.ref("gasRequests")
+        .orderByChild("status")
+        .equalTo("Pending")
+        .once("value")
+        .then((snapshot) => {
+          document.getElementById("pendingRequests").textContent =
+            snapshot.numChildren();
+        })
+        .catch((error) =>
+          console.error("Error fetching pending requests:", error)
+        );
+
+      // Get scheduled requests
+      db.ref("gasRequests")
+        .orderByChild("status")
+        .equalTo("Scheduled")
+        .once("value")
+        .then((snapshot) => {
+          document.getElementById("scheduledRequests").textContent =
+            snapshot.numChildren();
+        })
+        .catch((error) =>
+          console.error("Error fetching scheduled requests:", error)
+        );
+    </script>
+
+    <script>
+      // Function to load an HTML file into a specific element
+      function loadComponent(selector, file) {
+        fetch(file)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Could not load ${file}`);
+            }
+            return response.text();
+          })
+          .then((data) => {
+            document.querySelector(selector).innerHTML = data;
+          })
+          .catch((error) => console.error(error));
+      }
+
+      // Load components
+      document.addEventListener("DOMContentLoaded", () => {
+        loadComponent("header", "/includes/header.html");
+        loadComponent("nav", "/includes/top.html");
+        loadComponent(".sidebar", "/includes/sidebar.html");
+        loadComponent("footer", "/includes/footer.html");
+      });
+    </script>
+
+    <script>
+      async function generateOutletConsumersChart() {
+        const outletsRef = db.ref("outlets");
+        const consumersRef = db.ref("consumers");
+
+        try {
+          // Fetch outlets and consumers data
+          const [outletsSnapshot, consumersSnapshot] = await Promise.all([
+            outletsRef.once("value"),
+            consumersRef.once("value"),
+          ]);
+
+          const outlets = outletsSnapshot.val() || {};
+          const consumers = consumersSnapshot.val() || {};
+
+          // Prepare data
+          let outletConsumerCount = {}; // { outletId: consumerCount }
+
+          // Initialize outletConsumerCount with outlet names
+          Object.keys(outlets).forEach((outletId) => {
+            outletConsumerCount[outletId] = 0; // Start with zero
+          });
+
+          // Count consumers per outlet
+          Object.values(consumers).forEach((consumer) => {
+            if (
+              consumer.outletId &&
+              outletConsumerCount.hasOwnProperty(consumer.outletId)
+            ) {
+              outletConsumerCount[consumer.outletId]++;
+            }
+          });
+
+          // Prepare labels and data for Chart.js
+          const labels = Object.keys(outletConsumerCount).map(
+            (outletId) => outlets[outletId].outletName || `Outlet ${outletId}`
+          );
+          const data = Object.values(outletConsumerCount);
+
+          // Render the chart
+          const ctx = document
+            .getElementById("outletConsumersChart")
+            .getContext("2d");
+          new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: "Number of Consumers per Outlet",
+                  data: data,
+                  backgroundColor: "#4e73df",
+                  borderColor: "#2e59d9",
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                },
+              },
+            },
+          });
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      }
+
+      // Run the function when the page loads
+      document.addEventListener(
+        "DOMContentLoaded",
+        generateOutletConsumersChart
+      );
+    </script>
+  </body>
+</html>

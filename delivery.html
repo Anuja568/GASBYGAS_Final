@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+  <header>
+    <link rel="stylesheet" href="./css/sb-admin-2.css">
+    <link rel="stylesheet" href="./css/sb-admin-2.min.css">
+  </header>
+  <body id="page-top">
+    <div id="wrapper">
+      <div class="sidebar"></div>
+
+      <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+          <nav
+            class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow"
+          ></nav>
+
+          <div class="container-fluid">
+            <!-- <button
+              class="btn btn-primary mb-3"
+              data-toggle="modal"
+              data-target="#deliveryModal"
+              onclick="openDeliveryModal()"
+            >
+              Schedule Delivery
+            </button> -->
+            <!-- <button
+              class="btn btn-success mb-3"
+              id="exportTable"
+              title="Export table data to CSV"
+            >
+              Export to CSV
+            </button> -->
+            <div class="row">
+              <div class="col-xl-12 col-lg-12">
+                <div class="card shadow mb-4">
+                  <div class="card-header py-3">
+                    <div
+                      class="d-flex justify-content-between align-items-center"
+                    >
+                      <h6 class="m-0 font-weight-bold text-primary">
+                        Outlet Delivery Status
+                      </h6>
+                      <select
+                        id="sortBy"
+                        class="form-control w-auto"
+                        title="Sort outlets by selected criteria"
+                      >
+                        <option value="name">Sort by Name</option>
+                        <option value="status">Sort by Status</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="mb-3 row">
+                      <div class="form-group col-lg-6">
+                        <label for="dateFilter" class="col-form-label"
+                          >Filter by Date</label
+                        >
+                        <input
+                          type="date"
+                          id="dateFilter"
+                          class="form-control"
+                          placeholder="Filter by Date"
+                          title="Filter by delivery date"
+                        />
+                      </div>
+                      <div class="form-group col-lg-6">
+                        <label for="searchFilter" class="col-form-label"
+                          >Search Outlets</label
+                        >
+                        <input
+                          type="text"
+                          id="searchFilter"
+                          class="form-control"
+                          placeholder="Search Outlets"
+                          title="Search by outlet name"
+                        />
+                      </div>
+                    </div>
+
+                    <table class="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Outlet Name</th>
+                          <th>Location</th>
+                          <th>Contact</th>
+                          <th>Status</th>
+                          <th>Scheduled Delivery</th>
+                          <th>Delivery Type</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="deliveryTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <footer class="sticky-footer bg-white"></footer>
+      </div>
+    </div>
+
+    <!-- Schedule Delivery Modal -->
+    <div
+      class="modal fade"
+      id="deliveryModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="deliveryModalLabel"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Manage Delivery</h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="deliveryForm">
+              <input type="hidden" id="deliveryId" />
+
+              <!-- <div class="form-group">
+                <label>Outlet Name</label>
+                <select id="outletId" class="form-control" required>
+                  <option value="">Select an Outlet</option>
+                </select>
+              </div> -->
+
+              <div class="form-group">
+                <label>Status</label>
+                <select id="status" class="form-control">
+                  <option value="Pending">Pending</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Scheduled Delivery</label>
+                <input type="date" id="scheduleDate" class="form-control" />
+              </div>
+
+              <div class="form-group">
+                <label>Delivery Type</label>
+                <select id="deliveryType" class="form-control">
+                  <option value="Normal">Normal</option>
+                  <option value="Express">Express</option>
+                </select>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-dismiss="modal">
+              Close
+            </button>
+            <button class="btn btn-primary" onclick="saveDelivery()">
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <!-- Bootstrap and Firebase JS -->
+    <script src="/vendor/jquery/jquery.min.js"></script>
+    <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+        apiKey: "AIzaSyDMkSeU2fHSeam7-9wg_ztiy7Iopr3Zrxc",
+        authDomain:"asegas-system.firebaseapp.com",
+        databaseURL:"https://asegas-system-default-rtdb.firebaseio.com",
+        projectId:"asegas-system",
+        storageBucket:"asegas-system.firebasestorage.app" ,
+        messagingSenderId: "326877611210",
+        appId:"1:326877611210:web:9d171e0601cceb9b4d2033",
+      };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // function loadOutlets() {
+        //   const outletDropdown = document.getElementById("outletId");
+
+        //   // Clear existing options (except the default one)
+        //   outletDropdown.innerHTML = `<option value="">Select an Outlet</option>`;
+
+        //   db.ref("outlets").once("value", (snapshot) => {
+        //     snapshot.forEach((childSnapshot) => {
+        //       const outlet = childSnapshot.val();
+        //       const option = document.createElement("option");
+        //       option.value = childSnapshot.key;
+        //       option.textContent = outlet.outletName;
+        //       outletDropdown.appendChild(option);
+        //     });
+        //   });
+        // }
+
+        // Global array to store deliveries
+        let deliveries = [];
+
+        // Function to fetch deliveries and store in `deliveries` array
+        function fetchDeliveries() {
+          db.ref("deliveries").on("value", (snapshot) => {
+            deliveries = []; // Clear previous data
+
+            snapshot.forEach((childSnapshot) => {
+              const data = childSnapshot.val();
+              data.id = childSnapshot.key; // Store the Firebase key
+
+              // Fetch outlet details
+              db.ref("outlets/" + data.outletId).once(
+                "value",
+                (outletSnapshot) => {
+                  const outlet = outletSnapshot.val();
+                  data.outletName = outlet ? outlet.outletName : "Unknown";
+                  data.location = outlet ? outlet.address : "N/A";
+                  data.contact = outlet ? outlet.contactNumber : "N/A";
+
+                  deliveries.push(data);
+                  renderTable(); // Render table after fetching all data
+                }
+              );
+            });
+          });
+        }
+
+        // Function to render table based on sorted and filtered data
+        function renderTable() {
+          const tableBody = document.getElementById("deliveryTableBody");
+          tableBody.innerHTML = "";
+
+          // Get filter values
+          const searchQuery = document
+            .getElementById("searchFilter")
+            .value.toLowerCase();
+          const selectedDate = document.getElementById("dateFilter").value;
+          const sortBy = document.getElementById("sortBy").value;
+
+          // Filter data
+          let filteredDeliveries = deliveries.filter((delivery) => {
+            const matchesSearch = delivery.outletName
+              .toLowerCase()
+              .includes(searchQuery);
+            const matchesDate = selectedDate
+              ? delivery.scheduleDate === selectedDate
+              : true;
+            return matchesSearch && matchesDate;
+          });
+
+          // Sort data
+          filteredDeliveries.sort((a, b) => {
+            if (sortBy === "name") {
+              return a.outletName.localeCompare(b.outletName);
+            } else if (sortBy === "status") {
+              return a.status.localeCompare(b.status);
+            }
+            return 0;
+          });
+
+          // Populate table
+          filteredDeliveries.forEach((data, index) => {
+            const deliveryDate = data.scheduleDate
+              ? new Date(data.scheduleDate).toLocaleDateString()
+              : "Not Scheduled";
+
+            const row = `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${data.outletName}</td>
+          <td>${data.location}</td>
+          <td>${data.contact}</td>
+          <td>${data.status}</td>
+          <td>${deliveryDate}</td>
+          <td>${data.deliveryType}</td>
+          <td>
+            <button class="btn btn-warning btn-sm" onclick="editDelivery('${
+              data.id
+            }')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteDelivery('${
+              data.id
+            }')">Delete</button>
+          </td>
+        </tr>
+      `;
+            tableBody.innerHTML += row;
+          });
+        }
+
+        // Add event listeners for filtering & sorting
+        document.getElementById("sortBy").addEventListener("change", renderTable);
+        document
+          .getElementById("dateFilter")
+          .addEventListener("input", renderTable);
+        document
+          .getElementById("searchFilter")
+          .addEventListener("input", renderTable);
+
+        // Fetch deliveries initially
+        fetchDeliveries();
+
+        function openDeliveryModal(id = null) {
+          document.getElementById("deliveryForm").reset();
+          document.getElementById("deliveryId").value = id || "";
+          // loadOutlets();
+        }
+
+        function saveDelivery() {
+          const id = document.getElementById("deliveryId").value;
+          const data = {
+            outletId: document.getElementById("outletId").value,
+            status: document.getElementById("status").value,
+            scheduleDate: document.getElementById("scheduleDate").value,
+            deliveryType: document.getElementById("deliveryType").value,
+          };
+
+          if (id) {
+            db.ref("deliveries/" + id).update(data);
+
+            // send email
+          } else {
+            db.ref("deliveries").push(data);
+
+            // send email
+          }
+
+          $("#deliveryModal").modal("hide");
+        }
+
+        function editDelivery(id) {
+          db.ref("deliveries/" + id).once("value", (snapshot) => {
+            const data = snapshot.val();
+            document.getElementById("deliveryId").value = id;
+            document.getElementById("status").value = data.status;
+            document.getElementById("scheduleDate").value = data.scheduleDate;
+            document.getElementById("deliveryType").value = data.deliveryType;
+            $("#deliveryModal").modal("show");
+          });
+        }
+
+        function deleteDelivery(id) {
+          db.ref("deliveries/" + id).remove();
+          alert("deleted successfully");
+        }
+
+        document.addEventListener("DOMContentLoaded", loadOutlets);
+    </script>
+
+    <script>
+      // Function to load an HTML file into a specific element
+      function loadComponent(selector, file) {
+        fetch(file)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Could not load ${file}`);
+            }
+            return response.text();
+          })
+          .then((data) => {
+            document.querySelector(selector).innerHTML = data;
+          })
+          .catch((error) => console.error(error));
+      }
+
+      // Load components
+      document.addEventListener("DOMContentLoaded", () => {
+        loadComponent("header", "/includes/header.html");
+        loadComponent("nav", "/includes/top.html");
+        loadComponent(".sidebar", "/includes/sidebar.html");
+        loadComponent("footer", "/includes/footer.html");
+      });
+    </script>
+  </body>
+</html>

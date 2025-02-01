@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+  <header></header>
+  <body id="page-top">
+    <div id="wrapper">
+      <div class="sidebar"></div>
+
+      <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+          <nav
+            class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow"
+          ></nav>
+
+          <div class="container-fluid">
+            <!-- <button class="btn btn-primary mb-3" onclick="addGasRequest()">
+              Add sample request
+            </button> -->
+
+            <div class="row">
+              <div class="col-xl-12 col-lg-12">
+                <div class="card shadow mb-4">
+                  <div class="card-header py-3">
+                    <div
+                      class="d-flex justify-content-between align-items-center"
+                    >
+                      <h6 class="m-0 font-weight-bold text-primary">
+                        Gas requests
+                      </h6>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <table class="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Outlet Name</th>
+                          <th>Customer Name</th>
+                          <th>Contact No</th>
+                          <th>Quantity</th>
+                          <th>Status</th>
+                          <th>Requested At</th>
+                          <th>Token</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="gasRequestsTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <footer class="sticky-footer bg-white"></footer>
+      </div>
+    </div>
+
+    <!-- Create/Edit Token Modal -->
+    <div
+      class="modal fade"
+      id="deliveryModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="deliveryModalLabel"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Manage Delivery</h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="deliveryForm">
+              <input type="hidden" id="deliveryId" />
+
+              <div class="form-group">
+                <input
+                  type="hidden"
+                  id="outletId"
+                  class="form-control"
+                  readonly
+                />
+                <label>Outlet Name</label>
+                <input
+                  type="text"
+                  id="outletName"
+                  class="form-control"
+                  readonly
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Status</label>
+                <select id="status" class="form-control">
+                  <option value="Pending">Pending</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Scheduled Delivery</label>
+                <input
+                  type="date"
+                  id="scheduleDate"
+                  class="form-control"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Delivery Type</label>
+                <select id="deliveryType" class="form-control">
+                  <option value="Normal">Normal</option>
+                  <option value="Express">Express</option>
+                </select>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-dismiss="modal">
+              Close
+            </button>
+            <button class="btn btn-primary" onclick="saveDelivery()">
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <!-- Bootstrap and Firebase JS -->
+    <script src="/vendor/jquery/jquery.min.js"></script>
+    <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyDMkSeU2fHSeam7-9wg_ztiy7Iopr3Zrxc",
+        authDomain:"asegas-system.firebaseapp.com",
+        databaseURL:"https://asegas-system-default-rtdb.firebaseio.com",
+        projectId:"asegas-system" ,
+        storageBucket:"asegas-system.firebasestorage.app" ,
+        messagingSenderId: "326877611210",
+        appId:"1:326877611210:web:9d171e0601cceb9b4d2033",
+      };
+
+      // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      function loadGasRequests() {
+        const gasRequestsRef = db.ref("gasRequests");
+        const outletsRef = db.ref("outlets");
+        const deliveriesRef = db.ref("deliveries");
+        const consumersRef = db.ref("consumers"); // Reference to consumers table
+        const gasRequestsTableBody = document.getElementById(
+          "gasRequestsTableBody"
+        );
+
+        let outletsMap = {};
+        let consumersMap = {}; // Store consumerId -> consumer data
+        let scheduledRequests = new Set(); // Store scheduled request IDs
+
+        // Fetch existing deliveries first
+        deliveriesRef.once("value", (snapshot) => {
+          snapshot.forEach((childSnapshot) => {
+            const delivery = childSnapshot.val();
+            if (delivery.gasRequestId) {
+              scheduledRequests.add(delivery.gasRequestId);
+            }
+          });
+
+          // Fetch outlets
+          outletsRef.once("value", (snapshot) => {
+            snapshot.forEach((childSnapshot) => {
+              const outlet = childSnapshot.val();
+              outletsMap[childSnapshot.key] = outlet.outletName;
+            });
+
+            // Fetch consumers (to map consumerID to consumer details)
+            consumersRef.once("value", (snapshot) => {
+              snapshot.forEach((childSnapshot) => {
+                const consumer = childSnapshot.val();
+                consumersMap[childSnapshot.key] = {
+                  name: consumer.consumerName,
+                  contactNo: consumer.contactNo,
+                };
+              });
+
+              // Fetch gas requests
+              gasRequestsRef.once("value", (snapshot) => {
+                gasRequestsTableBody.innerHTML = "";
+                let index = 1;
+
+                snapshot.forEach((childSnapshot) => {
+                  const request = childSnapshot.val();
+                  const requestId = childSnapshot.key;
+                  const outletName = outletsMap[request.outletId] || "Unknown";
+                  const consumerData = consumersMap[request.consumerId] || {
+                    name: "Unknown",
+                    contactNo: "Unknown",
+                  };
+
+                  // Check if this request is already scheduled
+                  let actionButton = scheduledRequests.has(requestId)
+                    ? '<span class="text-success">Scheduled</span>'
+                    : `<button class="btn btn-primary btn-sm" onclick="openScheduleModal('${requestId}', '${outletName}', '${request.outletId}', '${request.status}')">
+                                  Schedule Delivery
+                               </button>`;
+
+                  // Create table row
+                  const row = `
+                            <tr>
+                                <td>${index++}</td>
+                                <td>${outletName}</td>
+                                <td>${consumerData.name}</td>
+                                <td>${consumerData.contactNo}</td>
+                                <td>${request.quantity}</td>
+                                <td>${request.status}</td>
+                                <td>${new Date(
+                                  request.requestedAt
+                                ).toLocaleString()}</td>
+                                <td>${request.requestToken}</td>
+                                <td>${actionButton}</td>
+                            </tr>
+                        `;
+
+                  gasRequestsTableBody.innerHTML += row;
+                });
+              });
+            });
+          });
+        });
+      }
+
+      function openScheduleModal(requestId, outletName, outletId, status) {
+        document.getElementById("deliveryId").value = requestId;
+        document.getElementById("outletId").value = outletId;
+        document.getElementById("outletName").value = outletName;
+        document.getElementById("status").value = status;
+
+        $("#deliveryModal").modal("show");
+      }
+
+      function saveDelivery() {
+        const requestId = document.getElementById("deliveryId").value;
+        const data = {
+          outletId: document.getElementById("outletId").value,
+          status: document.getElementById("status").value,
+          scheduleDate: document.getElementById("scheduleDate").value,
+          deliveryType: document.getElementById("deliveryType").value,
+          gasRequestId: requestId, // Store gas request ID in deliveries
+        };
+
+        // Store delivery details in deliveries
+        db.ref("deliveries")
+          .push(data)
+          .then(() => {
+            // Update the gas request status to "Scheduled"
+            db.ref("gasRequests/" + requestId).update({ status: "Scheduled" });
+            // send email
+            alert("scheduleld successfully");
+            location.reload();
+          });
+
+        $("#deliveryModal").modal("hide");
+      }
+
+      loadGasRequests();
+    </script>
+
+    <script>
+      // Function to load an HTML file into a specific element
+      function loadComponent(selector, file) {
+        fetch(file)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Could not load ${file}`);
+            }
+            return response.text();
+          })
+          .then((data) => {
+            document.querySelector(selector).innerHTML = data;
+          })
+          .catch((error) => console.error(error));
+      }
+
+      // Load components
+      document.addEventListener("DOMContentLoaded", () => {
+        loadComponent("header", "/includes/header.html");
+        loadComponent("nav", "/includes/top.html");
+        loadComponent(".sidebar", "/includes/sidebar.html");
+        loadComponent("footer", "/includes/footer.html");
+      });
+    </script>
+
+    <!-- <script>
+      function addGasRequest() {
+        const gasRequestRef = db.ref("gasRequests").push(); // Auto-generate a unique ID
+        console.log("adding");
+
+        gasRequestRef
+          .set({
+            outletId: "-OHiE7rpK3DegOaiFoDd", // Example outlet ID
+            customerName: "Jim",
+            contactNo: "1234567890",
+            quantity: 2,
+            status: "Pending",
+            requestedAt: new Date().toISOString(),
+            requestToken: generateToken(), // Generate a unique token for tracking
+          })
+          .then(() => {
+            console.log("Gas request added successfully.");
+          })
+          .catch((error) => {
+            console.error("Error adding gas request:", error);
+          });
+      }
+
+      // Function to generate a simple request token
+      function generateToken() {
+        return "REQ-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+      }
+    </script> -->
+  </body>
+</html>

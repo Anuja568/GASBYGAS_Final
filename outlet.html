@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+  <header></header>
+  <body id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+      <!-- Sidebar -->
+      <div class="sidebar"></div>
+      <!-- End of Sidebar -->
+
+      <!-- Content Wrapper -->
+      <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="content">
+          <!-- Topbar -->
+          <nav
+            class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow"
+          ></nav>
+
+          <!-- Begin Page Content -->
+          <div class="container-fluid">
+            <div class="col-xl-12 col-lg-12">
+              <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                  <div
+                    class="d-flex justify-content-between align-items-center"
+                  >
+                    <h6 class="m-0 font-weight-bold text-primary">
+                      Outlet Delivery Status
+                    </h6>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3 row">
+                    <div class="form-group col-lg-6">
+                      <!-- Button to Add New Outlet -->
+                      <button
+                        class="btn btn-primary mb-3"
+                        data-toggle="modal"
+                        data-target="#outletModal"
+                      >
+                        Add New Outlet
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Table to View Outlets -->
+                  <table class="table table-bordered" id="outletsTable">
+                    <thead>
+                      <tr>
+                        <th>Outlet Name</th>
+                        <th>Address</th>
+                        <th>Contact Person</th>
+                        <th>Contact Number</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Capacity</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="outletList"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- End of Page Content -->
+        </div>
+        <!-- End of Main Content -->
+
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white"></footer>
+        <!-- End of Footer -->
+      </div>
+      <!-- End of Content Wrapper -->
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Outlet Modal (Add/Update) -->
+    <div
+      class="modal fade"
+      id="outletModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="outletModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="outletModalLabel">Add/Update Outlet</h5>
+            <button
+              class="close"
+              type="button"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="outletForm">
+              <div class="row">
+                <div class="form-group col-lg-6">
+                  <label for="outletName">Outlet Name</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="outletName"
+                    required
+                  />
+                </div>
+                <div class="form-group col-lg-6">
+                  <label for="address">Address</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="address"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-lg-6">
+                  <label for="contactPerson">Contact Person</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="contactPerson"
+                    required
+                  />
+                </div>
+                <div class="form-group col-lg-6">
+                  <label for="contactNumber">Contact Number</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="contactNumber"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" required />
+              </div>
+              <div class="row">
+                <div class="form-group col-lg-6">
+                  <label for="status">Status</label>
+                  <select class="form-control" id="status">
+                    <option>Active</option>
+                    <option>Inactive</option>
+                  </select>
+                </div>
+                <div class="form-group col-lg-6">
+                  <label for="capacity">Capacity (Gas Cylinder)</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="capacity"
+                    required
+                  />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Save</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-dismiss="modal"
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <!-- Bootstrap and Firebase JS -->
+    <script src="/vendor/jquery/jquery.min.js"></script>
+    <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      // Initialize Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyDMkSeU2fHSeam7-9wg_ztiy7Iopr3Zrxc",
+        authDomain:"asegas-system.firebaseapp.com",
+        databaseURL:"https://asegas-system-default-rtdb.firebaseio.com",
+        projectId:"asegas-system" ,
+        storageBucket:"asegas-system.firebasestorage.app" ,
+        messagingSenderId: "326877611210",
+        appId:"1:326877611210:web:9d171e0601cceb9b4d2033",
+      };
+
+      const app = firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      // Function to add new outlet
+      function addOutlet(outlet) {
+        console.log("adding");
+        const newOutletRef = db.ref("outlets").push();
+        newOutletRef
+          .set(outlet)
+          .then(() => {
+            alert("Outlet added successfully!");
+            // send email
+            fetchOutlets();
+            $("#outletModal").modal("hide");
+          })
+          .catch((error) => {
+            alert("Error adding outlet: " + error.message);
+          });
+      }
+
+      // Function to fetch and display outlets
+      function fetchOutlets() {
+        db.ref("outlets")
+          .once("value")
+          .then((snapshot) => {
+            let outletList = "";
+            snapshot.forEach((childSnapshot) => {
+              const data = childSnapshot.val();
+              const id = childSnapshot.key;
+              outletList += `
+            <tr>
+              <td>${data.outletName}</td>
+              <td>${data.address}</td>
+              <td>${data.contactPerson}</td>
+              <td>${data.contactNumber}</td>
+              <td>${data.email}</td>
+              <td>${data.status}</td>
+              <td>${data.capacity}</td>
+              <td>
+                <button class="btn btn-warning" onclick="editOutlet('${id}')">Edit</button>
+              </td>
+            </tr>
+          `;
+            });
+            document.getElementById("outletList").innerHTML = outletList;
+          })
+          .catch((error) => {
+            console.log("Error fetching outlets: " + error.message);
+          });
+      }
+
+      // Function to edit an outlet
+      function editOutlet(id) {
+        db.ref("outlets/" + id)
+          .once("value")
+          .then((snapshot) => {
+            const data = snapshot.val();
+            document.getElementById("outletName").value = data.outletName;
+            document.getElementById("address").value = data.address;
+            document.getElementById("contactPerson").value = data.contactPerson;
+            document.getElementById("contactNumber").value = data.contactNumber;
+            document.getElementById("email").value = data.email;
+            document.getElementById("status").value = data.status;
+            document.getElementById("capacity").value = data.capacity;
+            document.getElementById("outletForm").onsubmit = function (e) {
+              e.preventDefault();
+              updateOutlet(id);
+            };
+            $("#outletModal").modal("show");
+          });
+      }
+
+      // Function to update an outlet
+      function updateOutlet(id) {
+        const outlet = {
+          outletName: document.getElementById("outletName").value,
+          address: document.getElementById("address").value,
+          contactPerson: document.getElementById("contactPerson").value,
+          contactNumber: document.getElementById("contactNumber").value,
+          email: document.getElementById("email").value,
+          status: document.getElementById("status").value,
+          capacity: document.getElementById("capacity").value,
+        };
+        db.ref("outlets/" + id)
+          .update(outlet)
+          .then(() => {
+            alert("Outlet updated successfully!");
+
+            // send email
+            fetchOutlets();
+            $("#outletModal").modal("hide");
+          })
+          .catch((error) => {
+            alert("Error updating outlet: " + error.message);
+          });
+      }
+
+      // On document load
+      document.addEventListener("DOMContentLoaded", fetchOutlets);
+
+      // Handle form submit
+      document.getElementById("outletForm").onsubmit = function (e) {
+        e.preventDefault();
+        const outlet = {
+          outletName: document.getElementById("outletName").value,
+          address: document.getElementById("address").value,
+          contactPerson: document.getElementById("contactPerson").value,
+          contactNumber: document.getElementById("contactNumber").value,
+          email: document.getElementById("email").value,
+          status: document.getElementById("status").value,
+          capacity: document.getElementById("capacity").value,
+        };
+        addOutlet(outlet);
+      };
+    </script>
+
+    <script>
+      // Function to load an HTML file into a specific element
+      function loadComponent(selector, file) {
+        fetch(file)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Could not load ${file}`);
+            }
+            return response.text();
+          })
+          .then((data) => {
+            document.querySelector(selector).innerHTML = data;
+          })
+          .catch((error) => console.error(error));
+      }
+
+      // Load components
+      document.addEventListener("DOMContentLoaded", () => {
+        loadComponent("header", "/includes/header.html");
+        loadComponent("nav", "/includes/top.html");
+        loadComponent(".sidebar", "/includes/sidebar.html");
+        loadComponent("footer", "/includes/footer.html");
+      });
+    </script>
+  </body>
+</html>
